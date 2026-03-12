@@ -235,8 +235,20 @@ function initReveal() {
   const items = [...document.querySelectorAll(".reveal")];
   if (!items.length) return;
 
+  document.querySelectorAll("[data-stagger]").forEach((group) => {
+    const staggerStep = Math.max(0, Number(group.dataset.stagger) || 80);
+    [...group.children]
+      .filter((child) => child.classList && child.classList.contains("reveal"))
+      .forEach((item, index) => {
+        item.style.transitionDelay = `${Math.min(index * staggerStep, 420)}ms`;
+        item.dataset.delayReady = "true";
+      });
+  });
+
   items.forEach((item, index) => {
-    item.style.transitionDelay = `${Math.min(index * 70, 280)}ms`;
+    if (item.dataset.delayReady === "true") return;
+    item.style.transitionDelay = `${Math.min(index * 55, 260)}ms`;
+    item.dataset.delayReady = "true";
   });
 
   if (!window.IntersectionObserver) {
@@ -249,13 +261,45 @@ function initReveal() {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
         }
       });
     },
     { threshold: 0.1 }
   );
 
-  items.forEach((el) => observer.observe(el));
+  items.forEach((el) => {
+    if (el.classList.contains("visible")) return;
+    observer.observe(el);
+  });
+}
+
+function initTerminalAnchors() {
+  const terminalSection = document.getElementById("terminal");
+  if (!terminalSection) return;
+
+  function terminalTop() {
+    const topbar = document.querySelector(".topbar");
+    const topbarHeight = topbar ? topbar.getBoundingClientRect().height : 0;
+    const offset = window.innerWidth <= 930 ? 16 : topbarHeight + 20;
+    return Math.max(0, terminalSection.getBoundingClientRect().top + window.scrollY - offset);
+  }
+
+  document.querySelectorAll('a[href="#terminal"]').forEach((link) => {
+    if (link.dataset.terminalBind === "true") return;
+    link.dataset.terminalBind = "true";
+
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.scrollTo({ top: terminalTop(), behavior: "auto" });
+    });
+  });
+
+  if (window.location.hash === "#terminal") {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: terminalTop(), behavior: "auto" });
+    });
+  }
 }
 
 function initTerminal() {
@@ -482,8 +526,6 @@ function initTerminal() {
     setState("ready", false);
     await typeLine("Interactive shell online. Type a command or use the presets.", "muted");
   });
-
-  input.focus();
 }
 
 function initGithub() {
@@ -625,11 +667,15 @@ function initGithub() {
       return;
     }
 
+    const revealDirections = ["reveal-left", "reveal-up", "reveal-right"];
+
     repoGrid.innerHTML = filteredRepos
       .slice(0, 8)
       .map(
-        (repo) => `
-        <article class="repo-card tilt-card" style="--repo-accent: ${languageAccent(
+        (repo, index) => `
+        <article class="repo-card repo-card-v${(index % 3) + 1} tilt-card reveal ${
+          revealDirections[index % revealDirections.length]
+        }" style="--repo-accent: ${languageAccent(
           repo.language || "Unknown"
         )}">
           <h3>${escapeHtml(repo.name)}</h3>
@@ -647,6 +693,7 @@ function initGithub() {
       .join("");
 
     initTilt();
+    initReveal();
   }
 
   function renderGitHub(repos) {
@@ -681,5 +728,6 @@ initThreeScene();
 initTilt();
 initSpotlight();
 initReveal();
+initTerminalAnchors();
 initTerminal();
 initGithub();
