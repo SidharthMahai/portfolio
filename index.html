@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidharth Mahai | Interactive Full-Stack Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="texture"></div>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <header class="topbar">
+      <div class="brand">SM.dev</div>
+      <nav class="quick-links">
+        <a href="#expertise">Expertise</a>
+        <a href="#terminal">Terminal</a>
+        <a href="#github">GitHub</a>
+      </nav>
+      <div class="topbar-actions">
+        <button id="theme-toggle" class="btn btn-small btn-ghost theme-toggle" type="button">
+          Dark
+        </button>
+        <a
+          class="btn btn-small"
+          href="https://in.linkedin.com/in/sidharth-mahai-52a805173"
+          target="_blank"
+          rel="noreferrer"
+        >
+          LinkedIn
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero card tilt-card">
+        <div class="ring ring-a"></div>
+        <div class="ring ring-b"></div>
+
+        <div class="hero-copy">
+          <p class="kicker">Interactive Portfolio</p>
+          <h1>Sidharth Mahai</h1>
+          <p class="lead">
+            Full-stack software developer building production-grade products
+            across frontend systems, backend services, platform engineering,
+            and AI-powered workflows.
+          </p>
+          <div class="actions">
+            <a
+              class="btn"
+              href="https://github.com/SidharthMahai"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open GitHub
+            </a>
+            <a class="btn btn-ghost" href="#terminal">Run Dev Console</a>
+          </div>
+          <div class="command-strip">
+            <span>&gt; npm run build-ui</span>
+            <span>&gt; dotnet run api</span>
+            <span>&gt; python -m fastapi dev</span>
+            <span>&gt; az webapp deploy</span>
+          </div>
+        </div>
+
+        <div class="hero-panels">
+          <article class="meta-panel panel-a">
+            <p class="panel-label">Current Position</p>
+            <h3>Software Developer</h3>
+            <p>ExxonMobil</p>
+          </article>
+          <article class="meta-panel panel-b">
+            <p class="panel-label">Experience</p>
+            <h3>6 Years</h3>
+            <p>Full-Stack Product Engineering</p>
+          </article>
+          <article class="meta-panel panel-c">
+            <p class="panel-label">Education</p>
+            <h3>Christ University</h3>
+            <p>Bangalore</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="expertise" class="card reveal">
+        <div class="section-head">
+          <p class="kicker">Engineering Radar</p>
+          <h2>Expertise Rankings</h2>
+        </div>
+        <div class="rank-list">
+          <div class="rank-item">
+            <div class="rank-row"><span>UI Development</span><span>4.8/5</span></div>
+            <div class="meter"><span style="--w: 96%"></span></div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-row"><span>Backend Development</span><span>4.6/5</span></div>
+            <div class="meter"><span style="--w: 92%"></span></div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-row"><span>Python + API Delivery</span><span>3.7/5</span></div>
+            <div class="meter"><span style="--w: 74%"></span></div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-row"><span>Cloud, CI/CD & Release Ops</span><span>4.4/5</span></div>
+            <div class="meter"><span style="--w: 88%"></span></div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-row"><span>Code Collaboration (Git)</span><span>4.7/5</span></div>
+            <div class="meter"><span style="--w: 94%"></span></div>
+          </div>
+          <div class="rank-item">
+            <div class="rank-row"><span>System Design & Ownership</span><span>4.3/5</span></div>
+            <div class="meter"><span style="--w: 86%"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid reveal">
+        <article class="card stat tilt-card">
+          <p class="stat-label">Frontend Stack</p>
+          <h3>React, Next.js, Angular</h3>
+          <p>Component architecture, responsive UX, and production performance.</p>
+        </article>
+        <article class="card stat tilt-card">
+          <p class="stat-label">Backend Stack</p>
+          <h3>.NET, Python, FastAPI, IIS</h3>
+          <p>API delivery, auth integration, and deployment-ready services.</p>
+        </article>
+        <article class="card stat tilt-card">
+          <p class="stat-label">Platform Stack</p>
+          <h3>Azure, Git, CI/CD</h3>
+          <p>Release pipelines, environment automation, and stable rollouts.</p>
+        </article>
+      </section>
+
+      <section class="skills card reveal">
+        <div class="section-head">
+          <p class="kicker">Skill Matrix</p>
+          <h2>Detailed Skills Ranking</h2>
+        </div>
+        <div class="matrix-grid">
+          <article>
+            <h3>Strong</h3>
+            <ul>
+              <li>React.js <strong>4.8/5</strong></li>
+              <li>Next.js <strong>4.6/5</strong></li>
+              <li>Angular <strong>4.6/5</strong></li>
+              <li>.NET <strong>4.7/5</strong></li>
+            </ul>
+          </article>
+          <article>
+            <h3>Platform</h3>
+            <ul>
+              <li>Git Workflow <strong>4.7/5</strong></li>
+              <li>Azure <strong>4.5/5</strong></li>
+              <li>CI/CD Delivery <strong>4.5/5</strong></li>
+              <li>System Ownership <strong>4.3/5</strong></li>
+            </ul>
+          </article>
+          <article>
+            <h3>Medium</h3>
+            <ul>
+              <li>Python <strong>3.7/5</strong></li>
+              <li>FastAPI <strong>3.8/5</strong></li>
+              <li>IIS <strong>3.5/5</strong></li>
+              <li>AI Integration <strong>3.6/5</strong></li>
+            </ul>
+          </article>
+          <article>
+            <h3>Delivery Strengths</h3>
+            <ul>
+              <li>Frontend-to-Backend Integration <strong>4.6/5</strong></li>
+              <li>Release Confidence <strong>4.4/5</strong></li>
+              <li>Production Debugging <strong>4.4/5</strong></li>
+              <li>Cross-team Collaboration <strong>4.5/5</strong></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="terminal" class="terminal card reveal">
+        <div class="terminal-head">
+          <h2>Interactive Dev Console</h2>
+          <div class="lights"><span></span><span></span><span></span></div>
+        </div>
+        <div class="terminal-layout">
+          <div class="terminal-panel">
+            <p class="terminal-hint">Run presets or type commands directly.</p>
+            <div class="command-buttons">
+              <button type="button" data-command="help">help</button>
+              <button type="button" data-command="whoami">whoami</button>
+              <button type="button" data-command="expertise">expertise</button>
+              <button type="button" data-command="stack">stack</button>
+              <button type="button" data-command="github">github</button>
+              <button type="button" data-command="focus">focus</button>
+              <button type="button" data-command="clear">clear</button>
+            </div>
+            <div class="terminal-tips">
+              <span>Try: `help`, `stack`, `github`, `focus`</span>
+              <span>Arrow keys browse command history</span>
+            </div>
+          </div>
+          <div class="terminal-shell">
+            <div class="shell-top">
+              <div class="shell-title">
+                <span class="shell-badge">live</span>
+                <span>portfolio-console v2</span>
+              </div>
+              <div id="terminal-state" class="shell-state">ready</div>
+            </div>
+            <div id="terminal-output" class="terminal-output" aria-live="polite"></div>
+            <form id="terminal-form" class="terminal-form">
+              <label class="terminal-prompt" for="terminal-input">
+                <span class="prompt-prefix">visitor@sidharth:~$</span>
+                <input
+                  id="terminal-input"
+                  name="command"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="type help, whoami, expertise, stack, github, focus"
+                />
+              </label>
+              <button type="submit" class="terminal-run">Run</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="github" class="card reveal">
+        <div class="section-head">
+          <p class="kicker">Live GitHub Feed</p>
+          <h2>Repositories</h2>
+        </div>
+        <p class="terminal-hint">Public repos, sorted by latest push, with language filters.</p>
+        <div id="github-stats" class="github-stats"></div>
+        <div id="github-filters" class="github-filters"></div>
+        <div id="github-repos" class="repo-grid"></div>
+      </section>
+
+      <footer class="footer card reveal">
+        <p>Currently employed and focused on shipping high-impact software.</p>
+        <div class="footer-links">
+          <a
+            class="inline-link"
+            href="https://github.com/SidharthMahai"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub</a
+          >
+          <a
+            class="inline-link"
+            href="https://in.linkedin.com/in/sidharth-mahai-52a805173"
+            target="_blank"
+            rel="noreferrer"
+            >LinkedIn</a
+          >
+        </div>
+      </footer>
+    </main>
+
+    <script src="https://unpkg.com/three@0.163.0/build/three.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
