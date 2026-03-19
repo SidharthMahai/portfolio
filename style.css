@@ -854,6 +854,7 @@ body.theme-dark .quick-links a,
 body.theme-dark .btn-ghost,
 body.theme-dark .repo-meta span,
 body.theme-dark .repo-card p,
+body.theme-dark .repo-readme,
 body.theme-dark .terminal-hint,
 body.theme-dark .footer p {
   color: #c9d8f1;
@@ -1086,6 +1087,30 @@ body.theme-dark .repo-chip {
   font-size: 0.86rem;
 }
 
+.repo-summary.is-hidden {
+  display: none;
+}
+
+.repo-readme {
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  color: #4f5f78;
+  opacity: 0.92;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.repo-readme.is-loading {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.repo-readme.is-empty {
+  display: none;
+}
+
 .repo-meta {
   margin-top: 0.45rem;
   display: flex;
@@ -1119,13 +1144,29 @@ body.theme-dark .repo-chip {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--repo-accent, var(--accent)) 18%, transparent);
 }
 
+.repo-links {
+  margin-top: 0.68rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 .repo-link {
   display: inline-block;
-  margin-top: 0.68rem;
+  margin-top: 0;
   font-family: var(--mono);
   font-size: 0.77rem;
   text-decoration: none;
   color: var(--accent);
+}
+
+.repo-link-live {
+  color: color-mix(in srgb, var(--repo-accent, var(--accent)) 70%, #2f86ff);
+}
+
+.repo-link:hover {
+  text-decoration: underline;
 }
 
 .footer {

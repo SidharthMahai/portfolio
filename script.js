@@ -568,6 +568,11 @@ function initGithub() {
   let activeFilter = "All";
   let currentRepos = [];
   const frontendLanguages = new Set(["html", "javascript", "typescript", "css"]);
+  const ownerLogin = "SidharthMahai";
+  const readmeCacheKey = "portfolio-readmes-v1";
+  const readmeCacheTtlMs = 1000 * 60 * 60 * 24 * 7;
+  const readmeSnippets = new Map();
+  let readmeCache = loadReadmeCache();
 
   function escapeHtml(value) {
     return String(value)
@@ -578,6 +583,82 @@ function initGithub() {
       .replaceAll("'", "&#39;");
   }
 
+  function escapeCssAttrValue(value) {
+    const raw = String(value);
+    if (window.CSS && typeof window.CSS.escape === "function") {
+      return window.CSS.escape(raw);
+    }
+    return raw.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+  }
+
+  function loadReadmeCache() {
+    try {
+      const raw = window.localStorage.getItem(readmeCacheKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return {};
+      return parsed;
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function saveReadmeCache() {
+    try {
+      window.localStorage.setItem(readmeCacheKey, JSON.stringify(readmeCache));
+    } catch (_error) {
+      // Ignore storage errors.
+    }
+  }
+
+  function stripMarkdown(markdown) {
+    const lines = String(markdown || "").split(/\r?\n/);
+    const output = [];
+    let inFence = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("```")) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+      if (trimmed.startsWith("<!--") || trimmed.endsWith("-->")) continue;
+
+      output.push(line);
+    }
+
+    return output
+      .join("\n")
+      .replaceAll(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+      .replaceAll(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replaceAll(/`{1,3}([^`]+)`{1,3}/g, "$1")
+      .replaceAll(/^#{1,6}\s+/gm, "")
+      .replaceAll(/^\s*[-*+]\s+/gm, "")
+      .replaceAll(/^\s*\d+\.\s+/gm, "")
+      .replaceAll(/^\s*>\s?/gm, "")
+      .replaceAll(/[*_~]+/g, "")
+      .replaceAll(/\s+/g, " ")
+      .trim();
+  }
+
+  function extractReadmeSnippet(markdown, maxLength = 220) {
+    const raw = String(markdown || "");
+    const startToken = "<!-- PORTFOLIO:START -->";
+    const endToken = "<!-- PORTFOLIO:END -->";
+    const startIndex = raw.indexOf(startToken);
+    const endIndex = raw.indexOf(endToken);
+    const scoped =
+      startIndex !== -1 && endIndex !== -1 && endIndex > startIndex
+        ? raw.slice(startIndex + startToken.length, endIndex)
+        : raw;
+
+    const text = stripMarkdown(scoped);
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength - 1).trimEnd()}…`;
+  }
+
   function formatDate(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "Unknown";
@@ -586,6 +667,19 @@ function initGithub() {
       month: "short",
       day: "numeric",
     });
+  }
+
+  function normalizeHomepageUrl(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const withScheme = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+    try {
+      const url = new URL(withScheme);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+      return url.toString();
+    } catch (_error) {
+      return "";
+    }
   }
 
   function languageAccent(language) {
@@ -612,6 +706,99 @@ function initGithub() {
     }
 
     return repo.description || "Software project exploring backend and platform concepts.";
+  }
+
+  function repoFullName(repo) {
+    const owner = repo?.owner?.login || ownerLogin;
+    return `${owner}/${repo.name}`;
+  }
+
+  function cachedSnippetFor(repo) {
+    const key = repoFullName(repo);
+    if (readmeSnippets.has(key)) return readmeSnippets.get(key);
+
+    const cached = readmeCache?.[key];
+    if (!cached || typeof cached !== "object") return "";
+    if (!cached.snippet || typeof cached.snippet !== "string") return "";
+    if (!cached.fetchedAt || typeof cached.fetchedAt !== "number") return "";
+    if (Date.now() - cached.fetchedAt > readmeCacheTtlMs) return "";
+
+    readmeSnippets.set(key, cached.snippet);
+    return cached.snippet;
+  }
+
+  function updateCardReadmeSnippet(repo, snippet) {
+    const key = repoFullName(repo);
+    const card = repoGrid.querySelector(`[data-repo="${escapeCssAttrValue(key)}"]`);
+    if (!card) return;
+    const target = card.querySelector("[data-readme]");
+    if (!target) return;
+    const summary = card.querySelector("[data-summary]");
+    const value = (snippet || "").trim();
+    target.textContent = value;
+    target.classList.toggle("is-empty", !value);
+    target.classList.remove("is-loading");
+
+    if (summary) {
+      summary.classList.toggle("is-hidden", Boolean(value));
+      if (!value && !summary.textContent.trim()) {
+        const fallback = (card.dataset.fallbackSummary || "").trim();
+        if (fallback) summary.textContent = fallback;
+      }
+    }
+  }
+
+  async function fetchReadme(repo) {
+    const owner = repo?.owner?.login || ownerLogin;
+    const endpoint = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
+      repo.name
+    )}/readme`;
+
+    const res = await fetch(endpoint, {
+      headers: {
+        Accept: "application/vnd.github.raw",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`readme fetch failed: ${res.status}`);
+    }
+
+    return res.text();
+  }
+
+  async function ensureReadmeFor(repo) {
+    const key = repoFullName(repo);
+    const existing = cachedSnippetFor(repo);
+    if (existing) return existing;
+
+    if (readmeSnippets.has(`${key}:loading`)) return "";
+    readmeSnippets.set(`${key}:loading`, true);
+
+    try {
+      const markdown = await fetchReadme(repo);
+      const snippet = extractReadmeSnippet(markdown);
+      readmeSnippets.set(key, snippet);
+      readmeCache[key] = { snippet, fetchedAt: Date.now() };
+      saveReadmeCache();
+      updateCardReadmeSnippet(repo, snippet);
+      return snippet;
+    } catch (_error) {
+      readmeSnippets.set(key, "");
+      updateCardReadmeSnippet(repo, "");
+      return "";
+    } finally {
+      readmeSnippets.delete(`${key}:loading`);
+    }
+  }
+
+  function queueReadmes(repos) {
+    const visible = repos.slice(0, 8);
+    visible.forEach((repo, index) => {
+      window.setTimeout(() => {
+        ensureReadmeFor(repo);
+      }, 120 * index);
+    });
   }
 
   function renderSummary(repos) {
@@ -672,32 +859,57 @@ function initGithub() {
     repoGrid.innerHTML = filteredRepos
       .slice(0, 8)
       .map(
-        (repo, index) => `
+        (repo, index) => {
+          const readmeSnippet = cachedSnippetFor(repo);
+          const description = String(repo.description || "").trim();
+          const fallbackSummary = projectSummary(repo);
+          const key = repoFullName(repo);
+          const readmeStateClass = readmeSnippet ? "" : "is-loading";
+          const readmeText = readmeSnippet ? readmeSnippet : "Loading README…";
+          const homepageUrl = normalizeHomepageUrl(repo.homepage);
+          return `
         <article class="repo-card repo-card-v${(index % 3) + 1} tilt-card reveal ${
           revealDirections[index % revealDirections.length]
         }" style="--repo-accent: ${languageAccent(
           repo.language || "Unknown"
-        )}">
+        )}" data-repo="${escapeHtml(key)}" data-fallback-summary="${escapeHtml(fallbackSummary)}">
           <h3>${escapeHtml(repo.name)}</h3>
-          <p>${escapeHtml(projectSummary(repo))}</p>
+          <p class="repo-summary ${readmeSnippet ? "is-hidden" : ""}" data-summary>${escapeHtml(
+            description
+          )}</p>
+          <p class="repo-readme ${readmeStateClass}" data-readme>${escapeHtml(readmeText)}</p>
           <div class="repo-meta">
             <span class="repo-chip">${escapeHtml(repo.language || "Unknown")}</span>
             <span class="repo-chip">updated ${formatDate(repo.pushed_at)}</span>
           </div>
-          <a class="repo-link" href="${escapeHtml(
-            repo.html_url
-          )}" target="_blank" rel="noreferrer">open repo -></a>
+          <div class="repo-links">
+            <a class="repo-link" href="${escapeHtml(
+              repo.html_url
+            )}" target="_blank" rel="noreferrer">open repo -></a>
+            ${
+              homepageUrl
+                ? `<a class="repo-link repo-link-live" href="${escapeHtml(
+                    homepageUrl
+                  )}" target="_blank" rel="noreferrer">live site -></a>`
+                : ""
+            }
+          </div>
         </article>
-      `
+      `;
+        }
       )
       .join("");
 
     initTilt();
     initReveal();
+    queueReadmes(filteredRepos);
   }
 
   function renderGitHub(repos) {
-    currentRepos = [...repos].sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
+    const usernameRepoName = ownerLogin.toLowerCase();
+    currentRepos = [...repos]
+      .filter((repo) => String(repo?.name || "").toLowerCase() !== usernameRepoName)
+      .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
     renderSummary(currentRepos);
     renderFilters(currentRepos);
     renderRepoGrid();
